@@ -87,7 +87,7 @@ def build(con: duckdb.DuckDBPyConnection, settings: Settings) -> None:
     last_target_month = str(pd.Period(settings.as_of, "M") + 1)
     rows = []
     for year in sorted(PLAN_GROWTH):
-        if year - 1 < settings.start.year:
+        if year - 1 < settings.start.year or year > int(last_target_month[:4]):
             continue
         ly_total = yearly.xs(year - 1, level="y")
         if year - 2 >= settings.start.year:
@@ -140,7 +140,7 @@ def _sr_targets(con: duckdb.DuckDBPyConnection, tgt: pd.DataFrame) -> None:
     for month in tgt.month.unique():
         first = pd.Period(month, "M").start_time
         on = srs[(srs.join_date <= first) & (srs.leave_date.isna() | (srs.leave_date >= first))]
-        holder.update({(month, p): s for p, s in zip(on.position_id, on.sr_id)})
+        holder.update({(month, p): s for p, s in zip(on.position_id, on.sr_id, strict=True)})
     rows = []
     for (month, t, b), g in tgt.groupby(["month", "territory_id", "brand"], sort=False):
         total = g.target_value.iloc[0]
@@ -157,7 +157,7 @@ def _sr_targets(con: duckdb.DuckDBPyConnection, tgt: pd.DataFrame) -> None:
             w = r.copy()
         w = np.maximum(w, 0.6 * r)
         parts = round_to(total * w / w.sum(), 100, total=total)
-        for p, v in zip(pos, parts):
+        for p, v in zip(pos, parts, strict=True):
             rows.append((month, t, b, p, holder.get((month, p), "VACANT"), v))
     df = pd.DataFrame(rows, columns=["month", "territory_id", "brand", "position_id", "sr_id", "target_value"])
     con.register("sr_df", df)

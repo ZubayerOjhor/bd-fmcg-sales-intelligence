@@ -24,7 +24,7 @@ PEOPLE_PER_SR = 260e3          # field force density, adjusted by purchasing pow
 
 def districts() -> pd.DataFrame:
     d = pd.read_csv(REFERENCE / "bd_districts.csv")
-    d["region"] = [region_for(v, n) for v, n in zip(d.division, d.district)]
+    d["region"] = [region_for(v, n) for v, n in zip(d.division, d.district, strict=True)]
     return d
 
 

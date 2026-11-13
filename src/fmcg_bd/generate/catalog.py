@@ -7,13 +7,12 @@ from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 
-from ..config import (BRANDS, DISTRIBUTOR_MARGIN, EID_UL_ADHA, EID_UL_FITR, PRICE_CHANGES,
-                      RETAILER_MARGIN, Settings)
+from ..config import BRANDS, DISTRIBUTOR_MARGIN, EID_UL_ADHA, EID_UL_FITR, PRICE_CHANGES, RETAILER_MARGIN, Settings
 
 
 def products() -> pd.DataFrame:
     rows = []
-    for b_i, (brand, b) in enumerate(BRANDS.items()):
+    for _b_i, (brand, b) in enumerate(BRANDS.items()):
         for s_i, sku in enumerate(b["skus"]):
             pack, mrp, case, mix = sku[:4]
             launch = sku[4] if len(sku) > 4 else None

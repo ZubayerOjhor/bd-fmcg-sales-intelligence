@@ -58,7 +58,7 @@ def run(settings: Settings | None = None, quiet: bool = False) -> dict[str, pd.D
     lead = terr.region.map(sales.REGION_LEAD_DAYS).to_numpy()
     inv = pri.groupby(["d", "t"]).ngroup()
     erp_primary = pd.DataFrame({
-        "invoice_no": [f"INV-{days[d].strftime('%y%m')}-{n:06d}" for d, n in zip(pri.d, inv)],
+        "invoice_no": [f"INV-{days[d].strftime('%y%m')}-{n:06d}" for d, n in zip(pri.d, inv, strict=True)],
         "invoice_date": days[pri.d], "distributor_id": dist.reindex(tid[pri.t]).to_numpy(),
         "sku_id": sku[pri.s], "units": pri.units, "invoice_value": pri.invoice_value,
         "lead_days": lead[pri.t],
