@@ -137,7 +137,7 @@ EID_UL_ADHA = [date(2024, 6, 17), date(2025, 6, 7), date(2026, 5, 27)]
 
 # Synthetic supply events: a plant problem stops shipments of one SKU.
 SUPPLY_CUTS = [
-    ("Kesh", "180ml", date(2026, 9, 6), date(2026, 9, 27)),
+    ("Kesh", "180ml", date(2026, 9, 6), date(2026, 10, 4)),
     ("Nirmol", "200ml", date(2025, 11, 9), date(2025, 11, 23)),
 ]
 

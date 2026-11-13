@@ -86,7 +86,9 @@ def run(settings: Settings | None = None, quiet: bool = False) -> dict[str, pd.D
     universe, coverage = _coverage(settings, terr, srs, calls, sr, rng)
     audit = _retail_audit(sr, terr, rng, settings)
 
-    out = {**o, "dim_product": prod, "price_list": prices, "dim_date": cal,
+    # The calendar master runs to the end of the year so month and plan totals are known in advance.
+    full_cal = catalog.calendar(Settings(start=settings.start, as_of=settings.as_of.replace(month=12, day=31)))
+    out = {**o, "dim_product": prod, "price_list": prices, "dim_date": full_cal,
            "erp_primary_invoices": erp_primary, "dms_secondary_sales": dms_secondary,
            "dms_sr_sales": sr, "dms_sr_calls": calls, "dms_month_end_stock": stock,
            "outlet_universe": universe, "outlet_coverage": coverage, "retail_audit": audit}
