@@ -52,7 +52,7 @@ def calendar(settings: Settings) -> pd.DataFrame:
     days = pd.date_range(settings.start, settings.as_of, freq="D")
     c = pd.DataFrame({"date": days.date})
     c["weekday"] = days.day_name().str[:3]
-    c["is_friday"] = days.weekday == 4
+    c["is_friday"] = days.day_of_week == 4
     c["eid"] = ""
     c["is_holiday"] = False
     for name, eids, before, after in (("Eid ul-Fitr", EID_UL_FITR, 1, 3), ("Eid ul-Adha", EID_UL_ADHA, 1, 2)):

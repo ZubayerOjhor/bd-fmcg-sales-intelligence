@@ -15,7 +15,7 @@ class Result:
 
 
 def _one(con, sql):
-    return con.sql(sql).fetchone()
+    return con.execute(sql).fetchone()
 
 
 def run(con: duckdb.DuckDBPyConnection) -> list[Result]:

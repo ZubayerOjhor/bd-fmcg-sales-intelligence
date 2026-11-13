@@ -30,9 +30,9 @@ def test_every_data_check_passes(small):
 def test_targets_roll_up_to_the_plan(small):
     _, con = small
     # Each brand-month adds up across territories, and territories add up across SRs.
-    n = con.sql("select count(distinct month) from marts.target_territory_brand").fetchone()[0]
+    n = con.execute("select count(distinct month) from marts.target_territory_brand").fetchone()[0]
     assert n == 4  # Jan to Apr 2025: targets run one month past the as-of date
-    gap = con.sql("""
+    gap = con.execute("""
         with s as (select month, brand, sum(target_value) v from marts.target_sr_brand group by all),
              t as (select month, brand, sum(target_value) v from marts.target_territory_brand group by all)
         select max(abs(s.v - t.v)) from s join t using (month, brand)""").fetchone()[0]
@@ -41,7 +41,7 @@ def test_targets_roll_up_to_the_plan(small):
 
 def test_month_to_date_uses_working_days(small):
     s, con = small
-    wd = con.sql("select max(wd_elapsed), max(wd_in_month) from marts.mtd_territory_brand").fetchone()
+    wd = con.execute("select max(wd_elapsed), max(wd_in_month) from marts.mtd_territory_brand").fetchone()
     assert 0 < wd[0] < wd[1] <= 27
 
 
@@ -60,6 +60,6 @@ def test_raw_tables_are_consistent(small):
     s, _ = small
     con = duckdb.connect()
     raw = s.out_dir.as_posix()
-    sec = con.sql(f"select sum(delivered_value) from '{raw}/dms_secondary_sales.parquet'").fetchone()[0]
-    sr = con.sql(f"select sum(value) from '{raw}/dms_sr_sales.parquet'").fetchone()[0]
+    sec = con.execute(f"select sum(delivered_value) from '{raw}/dms_secondary_sales.parquet'").fetchone()[0]
+    sr = con.execute(f"select sum(value) from '{raw}/dms_sr_sales.parquet'").fetchone()[0]
     assert sr == pytest.approx(sec, rel=1e-9)

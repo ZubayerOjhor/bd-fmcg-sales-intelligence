@@ -13,7 +13,7 @@ from .config import COMPANY, REFERENCE, Settings
 
 
 def _df(con, sql: str) -> pd.DataFrame:
-    return con.sql(sql).df()
+    return con.execute(sql).df()
 
 
 def _records(df: pd.DataFrame, digits: int = 4) -> list[dict]:

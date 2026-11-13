@@ -71,8 +71,8 @@ def _month(m: str, k: int) -> str:
 
 
 def build(con: duckdb.DuckDBPyConnection, settings: Settings) -> None:
-    tbm = con.sql("select month, territory_id, brand, secondary_value v from marts.territory_brand_month").df()
-    terr = con.sql("select territory_id, population, affluence from staging.territory order by 1").df()
+    tbm = con.execute("select month, territory_id, brand, secondary_value v from marts.territory_brand_month").df()
+    terr = con.execute("select territory_id, population, affluence from staging.territory order by 1").df()
     full_cal = catalog.calendar(Settings(start=date(settings.start.year, 1, 1),
                                          as_of=date(settings.as_of.year, 12, 31)))
     wd = full_cal.groupby("month").is_working_day.sum()
@@ -128,11 +128,11 @@ def build(con: duckdb.DuckDBPyConnection, settings: Settings) -> None:
 
 
 def _sr_targets(con: duckdb.DuckDBPyConnection, tgt: pd.DataFrame) -> None:
-    srs = con.sql("select sr_id, position_id, territory_id, join_date, leave_date, route_outlets from staging.sr").df()
+    srs = con.execute("select sr_id, position_id, territory_id, join_date, leave_date, route_outlets from staging.sr").df()
     route = srs.sort_values("join_date").groupby("position_id").route_outlets.last()
     srs["join_date"] = pd.to_datetime(srs.join_date)
     srs["leave_date"] = pd.to_datetime(srs.leave_date)
-    hist = con.sql("""select m.month, s.position_id, m.brand, sum(m.secondary_value) v
+    hist = con.execute("""select m.month, s.position_id, m.brand, sum(m.secondary_value) v
                       from marts.sr_brand_month m join staging.sr s using (sr_id) group by all""").df()
     hist = hist.pivot_table(index=["position_id", "brand"], columns="month", values="v", fill_value=0.0)
     positions = srs.groupby("territory_id").position_id.unique().map(sorted)
