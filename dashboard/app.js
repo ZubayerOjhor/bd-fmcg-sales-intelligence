@@ -10,11 +10,11 @@ const charts = {};
 let D;
 
 // ---------- formatting ----------
-const cr = v => v == null ? "–" : `৳${(v / 1e7).toLocaleString("en-IN", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} Cr`;
-const lakh = v => v == null ? "–" : `৳${(v / 1e5).toLocaleString("en-IN", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} L`;
+const cr = v => v == null ? "-" : `৳${(v / 1e7).toLocaleString("en-IN", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} Cr`;
+const lakh = v => v == null ? "-" : `৳${(v / 1e5).toLocaleString("en-IN", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} L`;
 const money = v => Math.abs(v) >= 1e7 ? cr(v) : lakh(v);
-const pct = (v, d = 0) => v == null || isNaN(v) ? "–" : `${(v * 100).toFixed(d)}%`;
-const signed = (v, d = 1) => v == null || isNaN(v) ? "–" : `${v >= 0 ? "▲" : "▼"} ${Math.abs(v * 100).toFixed(d)}%`;
+const pct = (v, d = 0) => v == null || isNaN(v) ? "-" : `${(v * 100).toFixed(d)}%`;
+const signed = (v, d = 1) => v == null || isNaN(v) ? "-" : `${v >= 0 ? "▲" : "▼"} ${Math.abs(v * 100).toFixed(d)}%`;
 const cls = v => v == null ? "" : v >= 0 ? "up" : "down";
 const chip = v => `<span class="chip ${v >= 1 ? "g" : v >= 0.95 ? "a" : "r"}">${pct(v)}</span>`;
 const monthName = m => new Date(m + "-01T00:00:00").toLocaleDateString("en-GB", { month: "short", year: "numeric" });
@@ -36,7 +36,7 @@ function table(id, cols, rows, sortKey) {
   const draw = () => {
     const sorted = key ? [...rows].sort((a, b) => ((a[key] ?? -1e18) > (b[key] ?? -1e18) ? 1 : -1) * (asc ? 1 : -1)) : rows;
     el.innerHTML = `<thead><tr>${cols.map(c => `<th class="${c.n ? "n" : ""}" data-k="${c.k}">${c.h}${c.k === key ? (asc ? " ↑" : " ↓") : ""}</th>`).join("")}</tr></thead>` +
-      `<tbody>${sorted.map(r => `<tr>${cols.map(c => `<td class="${c.n ? "n" : ""} ${c.sub ? "sub" : ""}">${c.f ? c.f(r[c.k], r) : r[c.k] ?? "–"}</td>`).join("")}</tr>`).join("")}</tbody>`;
+      `<tbody>${sorted.map(r => `<tr>${cols.map(c => `<td class="${c.n ? "n" : ""} ${c.sub ? "sub" : ""}">${c.f ? c.f(r[c.k], r) : r[c.k] ?? "-"}</td>`).join("")}</tr>`).join("")}</tbody>`;
     el.querySelectorAll("th").forEach(th => th.onclick = () => { asc = th.dataset.k === key ? !asc : false; key = th.dataset.k; draw(); });
   };
   draw();
@@ -63,7 +63,7 @@ function overview() {
 
   const t = D.trend.filter(r => r.month >= "2025-01");
   chart("c-trend", {
-    tooltip: { ...tip, valueFormatter: v => v == null ? "–" : `৳${v.toFixed(1)} Cr` },
+    tooltip: { ...tip, valueFormatter: v => v == null ? "-" : `৳${v.toFixed(1)} Cr` },
     legend: { top: 0, right: 0, itemWidth: 12, itemHeight: 8, textStyle: { color: C.body } },
     grid: { left: 44, right: 12, top: 34, bottom: 28 },
     xAxis: axis({ type: "category", data: t.map(r => shortMonth(r.month)) }),
@@ -352,7 +352,7 @@ function planner() {
     { k: "territory", h: "Territory" }, { k: "region", h: "Region", sub: 1 },
     { k: "target", h: "Target", n: 1, f: lakh }, { k: "ly", h: "Last year", n: 1, f: lakh },
     { k: "g", h: "Growth", n: 1, f: v => `<span class="${cls(v)}">${signed(v)}</span>` },
-    { k: "capped", h: "Capped", n: 1, f: v => v || "–" }, { k: "floored", h: "Floored", n: 1, f: v => v || "–" },
+    { k: "capped", h: "Capped", n: 1, f: v => v || "-" }, { k: "floored", h: "Floored", n: 1, f: v => v || "-" },
   ], D.plan.map(r => ({ ...r, g: r.target / r.ly - 1 })), "target");
 }
 
