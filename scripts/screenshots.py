@@ -35,6 +35,7 @@ def main(out: Path) -> int:
         for i, tab in enumerate(TABS):
             page.click(f"button[data-tab={tab}]")
             page.wait_for_timeout(1200)
+            page.evaluate("window.scrollTo(0, 0); document.querySelector('.tabs').style.position = 'static'")
             page.screenshot(path=str(out / f"{i + 1:02d}_{tab}.png"), full_page=True)
         browser.close()
     server.shutdown()

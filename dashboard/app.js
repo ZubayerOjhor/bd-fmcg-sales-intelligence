@@ -69,7 +69,7 @@ function overview() {
     xAxis: axis({ type: "category", data: t.map(r => shortMonth(r.month)) }),
     yAxis: axis({ type: "value", axisLabel: { color: C.muted, formatter: v => v } }),
     series: [
-      { name: "Actual", type: "bar", barWidth: "58%", data: t.map(r => ({ value: r.actual / 1e7,
+      { name: "Actual", type: "bar", barWidth: "58%", itemStyle: { color: C.accent }, data: t.map(r => ({ value: r.actual / 1e7,
         itemStyle: { color: r.month === m.month ? C.flower : (r.target && r.actual >= r.target ? C.accent : "#5fa596"), borderRadius: [4, 4, 0, 0] } })) },
       { name: "Target", type: "line", data: t.map(r => r.target ? r.target / 1e7 : null), symbol: "circle", symbolSize: 5,
         lineStyle: { color: C.ink, width: 2 }, itemStyle: { color: C.ink } },
@@ -84,7 +84,7 @@ function overview() {
     tooltip: { trigger: "item", backgroundColor: "#fff", borderColor: C.line, textStyle: { color: C.ink, fontSize: 12 },
       formatter: p => p.data ? `<b>${p.name}</b> · ${p.data.r.region}<br>Projected ${p.data.value}% of target<br>MTD ${money(p.data.r.mtd)} of ${money(p.data.r.target)}<br>vs last year <span style="color:${p.data.r.yoy >= 0 ? C.good : C.bad}">${signed(p.data.r.yoy)}</span>` : p.name },
     visualMap: { min: 88, max: 106, calculable: true, orient: "horizontal", left: 10, bottom: 6, itemHeight: 140, itemWidth: 10,
-      text: ["106%", "88%"], textStyle: { color: C.muted, fontSize: 11 },
+      formatter: v => `${Math.round(v)}%`, textStyle: { color: C.muted, fontSize: 11 },
       inRange: { color: ["#c93a3a", "#ef8f5b", "#f7d58b", "#a7d8b6", "#1e8f62"] } },
     series: [{ type: "map", map: "bd", roam: false, data: dist, aspectScale: 0.92, layoutCenter: ["50%", "48%"], layoutSize: "92%",
       itemStyle: { borderColor: "#fff", borderWidth: 0.8 }, emphasis: { label: { show: true, color: C.ink, fontWeight: 700 }, itemStyle: { areaColor: C.flower } },
@@ -109,7 +109,7 @@ function overview() {
     xAxis: axis({ type: "value" }),
     series: [
       { name: "So far", type: "bar", data: regs.map(r => r.current_per_day / 1e5), itemStyle: { color: C.grey, borderRadius: 3 }, barGap: "10%" },
-      { name: "Required", type: "bar", data: regs.map(r => ({ value: r.required_per_day / 1e5, itemStyle: { color: r.required_per_day > r.current_per_day * 1.05 ? C.bad : C.accent, borderRadius: 3 } })) },
+      { name: "Required", type: "bar", itemStyle: { color: C.bad }, data: regs.map(r => ({ value: r.required_per_day / 1e5, itemStyle: { color: r.required_per_day > r.current_per_day * 1.05 ? C.bad : C.accent, borderRadius: 3 } })) },
     ],
   });
 }
@@ -210,7 +210,7 @@ function brands() {
 
 // ---------- field force ----------
 function field() {
-  const s = D.srs, pt = D.payout_trend, last = pt[pt.length - 1];
+  const s = D.srs, pt = D.payout_trend.filter(r => r.month < D.meta.month);
   const hit = s.filter(r => r.achievement >= 1).length;
   const avg = k => s.reduce((a, r) => a + (r[k] || 0), 0) / s.length;
   const payout = s.reduce((a, r) => a + r.payout_bdt, 0);
@@ -260,9 +260,10 @@ function field() {
 function distribution() {
   const last = D.meta.last_closed;
   const nd = {};
-  D.distribution.filter(r => r.month === last).forEach(r => { const b = nd[r.brand] ??= { b: 0, u: 0 }; b.b += r.buying; b.u += r.universe; });
-  const ndl = Object.entries(nd).map(([k, v]) => ({ brand: k, v: v.b / v.u })).sort((a, b) => a.v - b.v);
-  document.getElementById("nd-hint").textContent = `Share of all shops that bought the brand in ${monthName(last)}`;
+  D.distribution.filter(r => r.month === last).forEach(r => { const b = nd[r.brand] ??= { b: 0, c: 0 }; b.b += r.buying; b.c += r.covered; });
+  const ndl = Object.entries(nd).map(([k, v]) => ({ brand: k, v: v.b / v.c })).sort((a, b) => a.v - b.v);
+  const cov = D.kpi.covered_outlets / D.universe.reduce((a, r) => a + r.outlets, 0);
+  document.getElementById("nd-hint").textContent = `Outlets on SR routes that bought the brand in ${monthName(last)} · routes reach ${pct(cov)} of all shops`;
   chart("c-nd", {
     tooltip: { ...tip, valueFormatter: v => `${v.toFixed(1)}%` }, grid: { left: 74, right: 40, top: 6, bottom: 20 },
     yAxis: axis({ type: "category", data: ndl.map(r => r.brand) }), xAxis: axis({ type: "value", axisLabel: { formatter: "{value}%", color: C.muted } }),
@@ -276,7 +277,7 @@ function distribution() {
     yAxis: axis({ type: "value", min: 0, axisLabel: { formatter: "{value}%", color: C.muted } }),
     series: [{ type: "line", smooth: true, data: lt.map(r => +(r.share * 100).toFixed(1)), lineStyle: { color: C.flower, width: 3 }, itemStyle: { color: C.flower },
       areaStyle: { color: "rgba(242,165,22,.12)" }, markLine: { symbol: "none", data: [{ yAxis: 11.5, name: "even pace" }],
-        lineStyle: { color: C.muted, type: "dashed" }, label: { formatter: "even pace", color: C.muted, fontSize: 11 } } }],
+        lineStyle: { color: C.muted, type: "dashed" }, label: { formatter: "even pace", position: "insideStartTop", color: C.muted, fontSize: 11 } } }],
   });
   chart("c-universe", {
     tooltip: { trigger: "item", formatter: p => `${p.name}: ${p.value.toLocaleString("en-IN")} shops` },

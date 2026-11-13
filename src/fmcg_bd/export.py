@@ -50,6 +50,8 @@ def build(con: duckdb.DuckDBPyConnection, settings: Settings) -> dict:
                         where date >= '{month}-01' and date <= '{as_of}'""").f.iloc[0]
     cover = _df(con, f"""select sum(stock_value_dp) / sum(daily_sales_dp) as c from marts.stock_cover
                          where month = '{last_closed}'""").c.iloc[0]
+    covered = _df(con, f"""select sum(covered_outlets) as c from staging.coverage where month = '{last_closed}'
+                           and brand = (select min(brand) from staging.coverage)""").c.iloc[0]
     people = _df(con, f"""select count(distinct sr_id) as srs from staging.sr
                           where join_date <= '{as_of}' and (leave_date is null or leave_date >= '{as_of}')""").srs.iloc[0]
 
@@ -155,7 +157,7 @@ def build(con: duckdb.DuckDBPyConnection, settings: Settings) -> dict:
                  "note": "Synthetic data. The company, brands, people and every sales figure are invented."},
         "kpi": {**{k: (None if pd.isna(v) else float(v)) for k, v in overall.items()},
                 "ytd_target": float(ytd.target), "ytd_actual": float(ytd.actual), "ytd_ly": float(ytd.ly),
-                "fill_rate": float(fill), "stock_cover_days": float(cover), "active_srs": int(people),
+                "fill_rate": float(fill), "covered_outlets": int(covered), "stock_cover_days": float(cover), "active_srs": int(people),
                 "territories": int(len(terr)), "distributors": int(len(terr)),
                 "vacant_positions": int(vacancy.vacant), "positions": int(vacancy.total)},
         "trend": _records(trend.drop(columns="actual_mtd_only")),
@@ -175,6 +177,10 @@ def build(con: duckdb.DuckDBPyConnection, settings: Settings) -> dict:
     return data
 
 
+def _mname(m: str) -> str:
+    return pd.Period(m, "M").strftime("%B %Y")
+
+
 def _cr(v: float) -> str:
     return f"BDT {v / 1e7:,.1f} crore" if abs(v) >= 1e7 else f"BDT {v / 1e5:,.1f} lakh"
 
@@ -184,7 +190,7 @@ def insights(d: dict) -> list[dict]:
     k, out = d["kpi"], []
     gap = k["required_per_day"] / k["current_per_day"] - 1
     out.append({"tone": "bad" if gap > 0.05 else "good",
-                "text": f"To close {d['meta']['month']} on target, daily sales must run {gap:+.0%} versus the "
+                "text": f"To close {_mname(d['meta']['month'])} on target, daily sales must run {gap:+.0%} versus the "
                         f"pace so far ({_cr(k['required_per_day'])} a day against {_cr(k['current_per_day'])})."})
     regs = sorted(d["regions"], key=lambda r: r["projected_achievement"])
     w, b = regs[0], regs[-1]
@@ -199,10 +205,10 @@ def insights(d: dict) -> list[dict]:
     out.append({"tone": "bad", "text": f"Unfilled orders cost {_cr(short['s'])} on {short['sku_name']} this year, "
                                        f"the most of any SKU (fill rate {short['fill']:.0%})."})
     lt = d["loading_trend"][-2]
-    out.append({"tone": "warn", "text": f"{lt['share']:.0%} of primary sales in {lt['month']} were invoiced in the "
+    out.append({"tone": "warn", "text": f"{lt['share']:.0%} of primary sales in {_mname(lt['month'])} were invoiced in the "
                                         f"last three working days: stock is being loaded to close the month."})
     hit = [r for r in d["srs"] if r["achievement"] >= 1]
-    out.append({"tone": "neutral", "text": f"{len(hit)} of {len(d['srs'])} SRs hit their {d['meta']['last_closed']} "
+    out.append({"tone": "neutral", "text": f"{len(hit)} of {len(d['srs'])} SRs hit their {_mname(d['meta']['last_closed'])} "
                                            f"target; incentives paid {_cr(sum(r['payout_bdt'] for r in d['srs']))}."})
     return out
 
