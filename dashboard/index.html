@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales Intelligence · Kadam Consumer (synthetic)</title>
+<meta name="description" content="End-to-end FMCG sales system for Bangladesh on synthetic data: targets, achievement, field force, distribution, stock and market share.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.1/echarts.min.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="mark">K</div>
+    <div>
+      <div class="name">Kadam Consumer <span>Sales Intelligence</span></div>
+      <div class="sub" id="asof">Loading…</div>
+    </div>
+  </div>
+  <div class="demo">Synthetic data · fictional company</div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="overview" class="on">Overview</button>
+  <button data-tab="targets">Targets &amp; achievement</button>
+  <button data-tab="brands">Brands &amp; SKUs</button>
+  <button data-tab="field">Field force</button>
+  <button data-tab="distribution">Distribution &amp; stock</button>
+  <button data-tab="market">Market share</button>
+  <button data-tab="planner">Target planner</button>
+</nav>
+
+<main>
+  <!-- OVERVIEW -->
+  <section id="overview" class="page on">
+    <div class="kpis" id="kpis"></div>
+    <div class="grid g-7-5">
+      <div class="card">
+        <div class="card-h"><h3>Sales against target, by month</h3><span class="hint">Secondary sales, BDT crore · current month is month to date</span></div>
+        <div class="chart" id="c-trend" style="height:330px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>What needs attention</h3><span class="hint">Written by the pipeline from the data</span></div>
+        <ul class="insights" id="insights"></ul>
+      </div>
+    </div>
+    <div class="grid g-5-7">
+      <div class="card">
+        <div class="card-h"><h3>Projected month-end achievement by district</h3><span class="hint">64 districts · hover for detail</span></div>
+        <div class="chart" id="c-map" style="height:520px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Regions this month</h3><span class="hint" id="tg-hint"></span></div>
+        <div class="tbl-wrap"><table class="tbl" id="t-regions"></table></div>
+        <div class="card-h" style="margin-top:18px"><h3>Pace: required vs current, by region</h3><span class="hint">BDT lakh per working day</span></div>
+        <div class="chart" id="c-pace" style="height:250px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TARGETS -->
+  <section id="targets" class="page">
+    <div class="filters">
+      <label>Region <select id="f-region"></select></label>
+      <label>Brand <select id="f-brand"></select></label>
+      <span class="hint" id="f-note"></span>
+    </div>
+    <div class="grid g-5-7">
+      <div class="card">
+        <div class="card-h"><h3>Areas, projected achievement</h3><span class="hint">Line = 100% of target</span></div>
+        <div class="chart" id="c-areas" style="height:560px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Territories</h3><span class="hint">Click a header to sort</span></div>
+        <div class="tbl-wrap tall"><table class="tbl" id="t-terr"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRANDS -->
+  <section id="brands" class="page">
+    <div class="brand-cards" id="brand-cards"></div>
+    <div class="grid g-6-6">
+      <div class="card">
+        <div class="card-h"><h3>Seasonality: each brand's monthly sales vs its own average</h3><span class="hint">Winter care peaks in Dec-Jan, prickly heat powder in May, everything rises before Eid</span></div>
+        <div class="chart" id="c-season" style="height:380px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Sales lost to unfilled orders, by SKU</h3><span class="hint">BDT lakh per month · the Kesh 180ml supply cut in Sep 2026 stands out</span></div>
+        <div class="chart" id="c-short" style="height:380px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>SKU performance, year to date</h3><span class="hint" id="sku-hint"></span></div>
+      <div class="tbl-wrap"><table class="tbl" id="t-sku"></table></div>
+    </div>
+  </section>
+
+  <!-- FIELD FORCE -->
+  <section id="field" class="page">
+    <div class="kpis" id="kpis-field"></div>
+    <div class="grid g-7-5">
+      <div class="card">
+        <div class="card-h"><h3>Every SR: achievement vs strike rate</h3><span class="hint" id="field-hint"></span></div>
+        <div class="chart" id="c-scatter" style="height:420px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Incentive payout and hit rate</h3><span class="hint">BDT lakh paid · share of SRs at or above target</span></div>
+        <div class="chart" id="c-payout" style="height:420px"></div>
+      </div>
+    </div>
+    <div class="grid g-6-6">
+      <div class="card"><div class="card-h"><h3>Top 10 SRs</h3></div><div class="tbl-wrap"><table class="tbl" id="t-top"></table></div></div>
+      <div class="card"><div class="card-h"><h3>Bottom 10 SRs</h3><span class="hint">Coaching list</span></div><div class="tbl-wrap"><table class="tbl" id="t-bottom"></table></div></div>
+    </div>
+  </section>
+
+  <!-- DISTRIBUTION -->
+  <section id="distribution" class="page">
+    <div class="grid g-6-6">
+      <div class="card">
+        <div class="card-h"><h3>Numeric distribution by brand</h3><span class="hint" id="nd-hint"></span></div>
+        <div class="chart" id="c-nd" style="height:340px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Month-end loading</h3><span class="hint">Share of primary sales invoiced in the last 3 working days</span></div>
+        <div class="chart" id="c-loading" style="height:340px"></div>
+      </div>
+    </div>
+    <div class="grid g-5-7">
+      <div class="card">
+        <div class="card-h"><h3>Outlet universe</h3><span class="hint">Shops by channel, estimated from population</span></div>
+        <div class="chart" id="c-universe" style="height:300px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Distributor health</h3><span class="hint" id="stock-hint"></span></div>
+        <div class="tbl-wrap tall"><table class="tbl" id="t-stock"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARKET -->
+  <section id="market" class="page">
+    <div class="grid g-7-5">
+      <div class="card">
+        <div class="card-h"><h3>Kadam's value share by category</h3><span class="hint">Bi-monthly retail audit</span></div>
+        <div class="chart" id="c-share" style="height:400px"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Share by region, latest audit</h3><span class="hint" id="share-hint"></span></div>
+        <div class="chart" id="c-share-region" style="height:400px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>Category size and competition, latest audit</h3><span class="hint">Market value, BDT crore per two months</span></div>
+      <div class="chart" id="c-market" style="height:340px"></div>
+    </div>
+  </section>
+
+  <!-- PLANNER -->
+  <section id="planner" class="page">
+    <div class="card method">
+      <div class="card-h"><h3 id="plan-title">How next month's targets are set</h3></div>
+      <ol class="steps">
+        <li><b>Annual plan</b><span>Last year's actual by brand, plus plan growth. Brands that grew faster than the company get a higher plan.</span></li>
+        <li><b>Monthly phasing</b><span>Last year's monthly shape, corrected for this year's working days.</span></li>
+        <li><b>Territory split</b><span>40% last year's share of the same month, 40% share of the latest three closed months, 20% potential (population × purchasing power).</span></li>
+        <li><b>Guardrails</b><span>No territory below -5% or above +30% of its own last year. The excess is redistributed.</span></li>
+        <li><b>SR split</b><span>Each position's share of the territory in the latest three closed months. Every level adds up exactly.</span></li>
+      </ol>
+    </div>
+    <div class="kpis" id="kpis-plan"></div>
+    <div class="grid g-5-7">
+      <div class="card">
+        <div class="card-h"><h3>Brand plan</h3><span class="hint">Next month's target vs the same month last year</span></div>
+        <div class="tbl-wrap"><table class="tbl" id="t-plan-brand"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Territory targets</h3><span class="hint">Guardrail hits are brands held at the floor or cap</span></div>
+        <div class="tbl-wrap tall"><table class="tbl" id="t-plan"></table></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span id="foot-note"></span>
+  <span>Boundaries: geoBoundaries (BBS / OCHA, CC BY 3.0 IGO) · Population: BBS Census 2022 · <a href="https://github.com/ZubayerOjhor/bd-fmcg-sales-intelligence">Source on GitHub</a></span>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
