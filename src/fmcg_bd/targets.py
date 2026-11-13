@@ -8,8 +8,10 @@
                            + 20% share of potential (population x purchasing power).
 4. Guardrails              = each territory between -5% and +30% of its own last year; the excess
                              is redistributed to the territories still inside the band.
-5. SR split                = each SR position's share of the territory in the latest three closed
-                             months. Positions empty on the 1st are held as "VACANT".
+5. SR split                = 70% the position's median monthly share of the territory in the latest
+                             three closed months, 30% its share of route outlets, and never below 60%
+                             of its route share (so a beat that was empty does not get a tiny target).
+                             Positions empty on the 1st are held as "VACANT".
 Targets for month M are issued on the 25th of M-1, so the latest closed month is M-2.
 """
 
@@ -126,7 +128,8 @@ def build(con: duckdb.DuckDBPyConnection, settings: Settings) -> None:
 
 
 def _sr_targets(con: duckdb.DuckDBPyConnection, tgt: pd.DataFrame) -> None:
-    srs = con.sql("select sr_id, position_id, territory_id, join_date, leave_date from staging.sr").df()
+    srs = con.sql("select sr_id, position_id, territory_id, join_date, leave_date, route_outlets from staging.sr").df()
+    route = srs.sort_values("join_date").groupby("position_id").route_outlets.last()
     srs["join_date"] = pd.to_datetime(srs.join_date)
     srs["leave_date"] = pd.to_datetime(srs.leave_date)
     hist = con.sql("""select m.month, s.position_id, m.brand, sum(m.secondary_value) v
@@ -144,9 +147,15 @@ def _sr_targets(con: duckdb.DuckDBPyConnection, tgt: pd.DataFrame) -> None:
         pos = positions[t]
         recent = [m for m in (_month(month, -j) for j in (4, 3, 2)) if m in hist.columns]
         keys = [(p, b) for p in pos]
-        w = (hist.reindex(keys)[recent].fillna(0).sum(axis=1).to_numpy() if recent else np.zeros(len(pos)))
-        if w.sum() == 0:
-            w = np.ones(len(pos))
+        r = route.reindex(pos).to_numpy(float)
+        r = r / r.sum()
+        if recent:
+            h = hist.reindex(keys)[recent].fillna(0).to_numpy()
+            share = h / np.where(h.sum(0) > 0, h.sum(0), 1)
+            w = 0.7 * np.median(share, axis=1) + 0.3 * r
+        else:
+            w = r.copy()
+        w = np.maximum(w, 0.6 * r)
         parts = round_to(total * w / w.sum(), 100, total=total)
         for p, v in zip(pos, parts):
             rows.append((month, t, b, p, holder.get((month, p), "VACANT"), v))
