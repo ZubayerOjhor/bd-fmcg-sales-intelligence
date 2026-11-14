@@ -373,7 +373,7 @@ Promise.all([fetch("data/dashboard.json").then(r => r.json()), fetch("data/bd_di
   .then(([d, geo]) => {
     D = d; D.geo = geo;
     const m = D.meta;
-    document.getElementById("asof").textContent = `As of ${new Date(m.as_of + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} · day ${m.wd_elapsed} of ${m.wd_in_month} working days · ${D.kpi.territories} territories · ${D.kpi.active_srs} SRs`;
+    document.getElementById("asof").textContent = `As of ${new Date(m.as_of + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} · day ${m.wd_elapsed} of ${m.wd_in_month} working days · ${D.kpi.territories} territories · ${D.kpi.positions} SR positions`;
     document.getElementById("foot-note").textContent = m.note;
     const start = location.hash.slice(1);
     show(renderers[start] ? start : "overview");
